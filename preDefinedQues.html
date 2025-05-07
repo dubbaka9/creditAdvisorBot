@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot with Predefined Questions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;  
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            padding: 10px;
+            border-radius: 15px 15px 0 15px;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .bot-message {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 15px 15px 15px 0;
+            border: 1px solid #ddd;
+        }
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .option-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option-button:hover {
+            background-color: #45a049;
+        }
+        .chat-input {
+            padding: 15px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+            display: flex;
+        }
+        .thinking {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Chatbot Demo</h1>
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will appear here -->
+        </div>
+    </div>
+
+    <script>
+        // Predefined questions and options
+        const questionFlow = [
+            {
+                id: "q1",
+                question: "What area would you like assistance with?",
+                options: [
+                    { text: "Marketing Strategy", value: "marketing" },
+                    { text: "Financial Planning", value: "finance" },
+                    { text: "Operations Management", value: "operations" }
+                ],
+                llmPrompt: "Provide a brief overview of best practices for {selection} for a small business."
+            },
+            {
+                id: "q2",
+                question: "How experienced are you in this area?",
+                options: [
+                    { text: "Beginner", value: "beginner" },
+                    { text: "Intermediate", value: "intermediate" },
+                    { text: "Advanced", value: "advanced" }
+                ],
+                llmPrompt: "Provide {selection} level guidance on the previously mentioned topic."
+            },
+            {
+                id: "q3",
+                question: "Would you like practical examples or theoretical knowledge?",
+                options: [
+                    { text: "Practical Examples", value: "practical" },
+                    { text: "Theoretical Knowledge", value: "theoretical" },
+                    { text: "Both", value: "both" }
+                ],
+                llmPrompt: "Focus on providing {selection} content related to the previously discussed topic."
+            }
+        ];
+
+        // Conversation state
+        let conversationState = {
+            currentQuestionIndex: 0,
+            selections: {},
+            responseHistory: []
+        };
+
+        const chatMessages = document.getElementById('chatMessages');
+
+        // Initialize chat
+        function initChat() {
+            addBotMessage(questionFlow[0].question);
+            displayOptions(questionFlow[0].options);
+        }
+
+        // Add a bot message to the chat
+        function addBotMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Add a user message to the chat
+        function addUserMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message user-message';
+            messageElement.textContent = message;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Display options as buttons
+        function displayOptions(options) {
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'options-container';
+            
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.textContent = option.text;
+                button.onclick = () => handleOptionSelection(option);
+                optionsContainer.appendChild(button);
+            });
+            
+            chatMessages.appendChild(optionsContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show typing indicator
+        function showThinking() {
+            const thinkingElement = document.createElement('div');
+            thinkingElement.className = 'message bot-message thinking';
+            thinkingElement.id = 'thinking-indicator';
+            thinkingElement.textContent = 'Thinking...';
+            chatMessages.appendChild(thinkingElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Remove typing indicator
+        function hideThinking() {
+            const thinkingElement = document.getElementById('thinking-indicator');
+            if (thinkingElement) {
+                thinkingElement.remove();
+            }
+        }
+
+        // Handle option selection
+        function handleOptionSelection(option) {
+            // Add user's selection to chat
+            addUserMessage(option.text);
+            
+            // Store selection
+            const currentQuestion = questionFlow[conversationState.currentQuestionIndex];
+            conversationState.selections[currentQuestion.id] = option.value;
+            
+            // Show thinking indicator
+            showThinking();
+            
+            // Simulate API call to LLM (would be a real API call in production)
+            setTimeout(() => {
+                hideThinking();
+                
+                // Generate prompt based on all selections so far
+                const response = simulateLLMResponse(currentQuestion, option);
+                addBotMessage(response);
+                
+                // Store in history
+                conversationState.responseHistory.push({
+                    question: currentQuestion.question,
+                    selection: option.value,
+                    response: response
+                });
+                
+                // Move to next question if available
+                conversationState.currentQuestionIndex++;
+                if (conversationState.currentQuestionIndex < questionFlow.length) {
+                    const nextQuestion = questionFlow[conversationState.currentQuestionIndex];
+                    addBotMessage(nextQuestion.question);
+                    displayOptions(nextQuestion.options);
+                } else {
+                    // End of questions
+                    addBotMessage("Thank you for using our AI assistant! Is there anything else you'd like to know?");
+                }
+            }, 1500); // Simulate API delay
+        }
+
+        // Simulate LLM API response (would be replaced with actual API call)
+        function simulateLLMResponse(question, selectedOption) {
+            // In a real implementation, this would be an API call to OpenAI, Anthropic, etc.
+            const templates = {
+                "marketing": {
+                    "beginner": {
+                        "practical": "For beginners in marketing, start with customer research. Interview 5-10 potential customers to understand their needs. Then create a simple value proposition and test it on social media with a small ad budget of $50-100.",
+                        "theoretical": "Marketing fundamentals include the 4Ps: Product, Price, Place, and Promotion. For beginners, focus on understanding your target market through demographic and psychographic analysis before developing any strategies.",
+                        "both": "Marketing theory starts with understanding the 4Ps (Product, Price, Place, Promotion). In practice, begin by interviewing 5-10 potential customers and creating customer personas. Then test messaging with small social media campaigns."
+                    },
+                    "intermediate": {
+                        "practical": "Since you have some marketing experience, focus on building a content calendar and implementing A/B testing for your campaigns. Try testing different headlines on your top-performing content.",
+                        "theoretical": "At the intermediate level, explore concepts like customer journey mapping and attribution modeling. Understanding touchpoints and conversion paths will help optimize your marketing funnel.",
+                        "both": "Combine your theoretical knowledge of customer journey mapping with practical implementation of tracking pixels and analytics. Set up conversion tracking and create weekly reports to identify optimization opportunities."
+                    },
+                    "advanced": {
+                        "practical": "For advanced marketers, implement omnichannel attribution modeling and predictive analytics. Use tools like Google Analytics 4 and custom dashboards to forecast customer behavior.",
+                        "theoretical": "Advanced marketing theory focuses on brand equity valuation, market equilibrium models, and psychological pricing strategies that can be implemented across product lines.",
+                        "both": "Leverage your advanced understanding of marketing theory to implement sophisticated segmentation strategies. Build customer propensity models that predict lifetime value and optimize acquisition costs accordingly."
+                    }
+                },
+                // Templates for other topic areas would be included similarly
+            };
+            
+            // Get the relevant response based on all previous selections
+            try {
+                const topic = conversationState.selections["q1"] || "marketing";
+                const level = conversationState.selections["q2"] || "beginner";
+                const format = conversationState.selections["q3"] || selectedOption.value;
+                
+                if (templates[topic] && templates[topic][level] && templates[topic][level][format]) {
+                    return templates[topic][level][format];
+                }
+            } catch (e) {}
+            
+            // Fallback response
+            return `Here's some information about ${selectedOption.text}: This would be personalized content from the LLM API based on all your previous selections.`;
+        }
+
+        // Start the chat when the page loads
+        window.onload = initChat;
+    </script>
+</body>
+</html>

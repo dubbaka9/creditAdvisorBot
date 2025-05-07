@@ -1,0 +1,41 @@
+{
+    "credit_advice": [
+        {
+            "credit_score_range": "300-579",
+            "advice": "Your credit score is considered poor. Focus on making all payments on time and reducing credit utilization. Consider a secured credit card to build credit.",
+            "recommendations": {
+                "High":"Credit Card-1",
+               "moderate":"Credit Card-2",
+               "Low":"Credit Card-3"
+            }
+            
+        },
+        {
+            "credit_score_range": "580-669",
+            "advice": "Your credit score is fair. Continue making timely payments and work on reducing existing debt. Avoid applying for new credit.",
+            "recommendations": {
+                "High":"Credit Card-4",
+               "moderate":"Credit Card-5",
+               "Low":"Credit Card-6"
+            }
+        },
+        {
+            "credit_score_range": "670-799",
+            "advice": "Your credit score is good. You're likely to qualify for better interest rates. Continue your good credit habits.",
+            "recommendations": {
+                "High":"Credit Card-7",
+               "moderate":"Credit Card-8",
+               "Low":"Credit Card-9"
+            }
+        },
+        {
+            "credit_score_range": "800-850",
+            "advice": "Excellent credit score! You qualify for the best rates and terms. Focus on maintaining your excellent credit history.",
+            "recommendations": {
+                "High":"Credit Card-10",
+               "moderate":"Credit Card-11",
+               "Low":"Credit Card-12"
+            }
+        }
+    ]
+}
